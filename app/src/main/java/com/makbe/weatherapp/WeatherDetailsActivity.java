@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import com.airbnb.lottie.LottieAnimationView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
@@ -18,6 +19,9 @@ import com.makbe.weatherapp.data.WeatherData;
 import com.makbe.weatherapp.utils.NetUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -28,6 +32,7 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 	private TextView textHumidity;
 	private TextView textWind;
 	private ImageView conditionImage;
+	private LottieAnimationView conditionAnimView;
 
 	private ProgressBar progressBar;
 
@@ -50,6 +55,7 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 		progressBar = findViewById(R.id.progressBar);
 
 		conditionImage = findViewById(R.id.image_condition);
+		conditionAnimView = findViewById(R.id.lottie_anim_condition);
 
 		textMain = findViewById(R.id.text_main);
 		textDescription = findViewById(R.id.text_description);
@@ -120,11 +126,18 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 		location = name;
 		setTitle(name);
 
-		String BASE_IMG_URL = "https://openweathermap.org/img/wn/";
-		String iconUrl = BASE_IMG_URL + icon + "@2x.png";
-		Glide.with(this)
-				.load(iconUrl)
-				.into(conditionImage);
+		switch (icon) {
+			case "02n", "03n", "04n" -> handleAnimation("weather-cloudy-night.json");
+			case "02d", "03d", "04d" -> handleAnimation("weather-cloudy-day.json");
+			case "09n", "10n" -> handleAnimation("weather-rainy-night.json");
+			case "09d", "10d" -> handleAnimation("weather-rainy-day.json");
+			case "11n", "11d" -> handleAnimation("weather-storm.json");
+			case "01n" -> handleAnimation("weather-night.json");
+			case "01d" -> handleAnimation("weather-sunny.json");
+			default -> displayDefaultIcon(icon);
+		}
+
+		conditionAnimView.playAnimation();
 
 		textMain.setText(main);
 		textDescription.setText(description);
@@ -133,6 +146,33 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 		textHumidity.setText(String.valueOf(humidity));
 		textWind.setText(String.valueOf(wind));
 
+	}
+
+	private void displayDefaultIcon(String icon) {
+		conditionImage.setVisibility(View.VISIBLE);
+		conditionAnimView.setVisibility(View.GONE);
+
+		String BASE_IMG_URL = "https://openweathermap.org/img/wn/";
+		String iconUrl = BASE_IMG_URL + icon + "@2x.png";
+
+		Glide.with(this)
+				.load(iconUrl)
+				.into(conditionImage);
+	}
+
+	private void handleAnimation(String animationFile) {
+		try {
+			InputStream inputStream = getAssets().open(animationFile);
+			int size = inputStream.available();
+			byte[] buffer = new byte[size];
+			inputStream.read(buffer);
+			inputStream.close();
+
+			String jsonContent = new String(buffer, StandardCharsets.UTF_8);
+			conditionAnimView.setAnimationFromJson(jsonContent);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override

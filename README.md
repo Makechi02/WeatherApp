@@ -14,7 +14,7 @@ The Weather App is a simple Android application that allows users to check the c
 ## Screenshots
 ![Screenshot 1](/screenshots/Screenshot_20240512-234826_Weather%20App.jpg)
 
-![Screenshot 2](/screenshots/Screenshot_20240512-235114_Weather%20App.jpg)
+![Screenshot 2](/screenshots/Screenshot_20240513-015313_Weather%20App.jpg)
 
 ## Technologies Used
 - Java
