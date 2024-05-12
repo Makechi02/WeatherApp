@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toTopOf="@+id/progressBar"
-            app:layout_constraintBottom_toTopOf="@+id/btn_submit"
+            app:layout_constraintBottom_toTopOf="@+id/layout_btns"
             android:orientation="vertical">
 
         <ImageView
@@ -52,11 +52,25 @@
 
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Submit"
-            android:id="@+id/btn_submit"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/layout_btns">
+
+        <com.google.android.material.button.MaterialButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Submit"
+                android:id="@+id/btn_submit"/>
+
+        <com.google.android.material.button.MaterialButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Use device location"
+                android:id="@+id/btn_use_device"
+                style="@style/Widget.Material3.Button.OutlinedButton"/>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

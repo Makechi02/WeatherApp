@@ -12,11 +12,9 @@ The Weather App is a simple Android application that allows users to check the c
 - Error handling for invalid locations or network issues
 
 ## Screenshots
-![Screenshot 1](/screenshots/Screenshot_20240510-145805_Weather%20App.jpg)
+![Screenshot 1](/screenshots/Screenshot_20240512-234826_Weather%20App.jpg)
 
-![Screenshot 2](/screenshots/Screenshot_20240510-145822_Weather%20App.jpg)
-
-![Screenshot 3](/screenshots/Screenshot_20240512-235114_Weather%20App.jpg)
+![Screenshot 2](/screenshots/Screenshot_20240512-235114_Weather%20App.jpg)
 
 ## Technologies Used
 - Java

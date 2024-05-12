@@ -6,8 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.*;
 
 public class Weather {
 	private static final String BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
@@ -18,10 +17,25 @@ public class Weather {
 	}
 
 	public static void fetchWeatherData(Context context, String location, WeatherCallback callback) {
-		String API_KEY = context.getResources().getString(R.string.api_key);
-
 		try {
-			URL url = new URL(BASE_URL + "?q=" + location + "&appid=" + API_KEY);
+			URL url = new URL(BASE_URL + "?q=" + location + "&appid=" + getApiKey(context));
+			fetchData(url, callback);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void fetchWeatherDataByCoordinates(Context context, double latitude, double longitude, WeatherCallback callback) {
+		try {
+			URL url = new URL(BASE_URL + "?lat=" + latitude + "&lon=" + longitude + "&appid=" + getApiKey(context));
+			fetchData(url, callback);
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static void fetchData(URL url, WeatherCallback callback) {
+		try {
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 			int responseCode = connection.getResponseCode();
 
@@ -44,7 +58,7 @@ public class Weather {
 			} else if (responseCode == 404) {
 				callback.onFailure("Unable to find location");
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			callback.onFailure(e.getMessage());
 		}
 	}
@@ -68,5 +82,9 @@ public class Weather {
 		} catch (JSONException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static String getApiKey(Context context) {
+		return context.getResources().getString(R.string.api_key);
 	}
 }
