@@ -53,7 +53,7 @@ public class Weather {
 		try {
 			JSONObject response = new JSONObject(JsonResponse);
 			JSONObject mainResponse = response.getJSONObject("main");
-			double temperature = mainResponse.getDouble("temp");
+			double temperature = Math.floor(mainResponse.getDouble("temp") - 273);
 			double humidity = mainResponse.getDouble("humidity");
 			double wind = response.getJSONObject("wind").getDouble("speed");
 
