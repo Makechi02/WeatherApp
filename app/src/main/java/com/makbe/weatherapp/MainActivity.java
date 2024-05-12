@@ -3,6 +3,8 @@ package com.makbe.weatherapp;
 import android.content.Intent;
 import android.os.*;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +22,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
 
 	private String location;
+	private ProgressBar progressBar;
 
 	@Override
 	protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
@@ -29,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 		MaterialButton submitBtn = findViewById(R.id.btn_submit);
 		TextInputLayout locationInputLayout = findViewById(R.id.layout_input_location);
 		TextInputEditText locationInput = findViewById(R.id.input_location);
+		progressBar = findViewById(R.id.progressBar);
 
 		submitBtn.setOnClickListener(view -> {
 			if (Objects.requireNonNull(locationInput.getText()).toString().isBlank()) {
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 				return;
 			}
 
+			progressBar.setVisibility(View.VISIBLE);
 			location = locationInput.getText().toString().trim();
 			executeFetch();
 		});
@@ -55,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 			executorService.execute(() -> Weather.fetchWeatherData(this, location, new Weather.WeatherCallback() {
 				@Override
 				public void onSuccess(WeatherData data) {
+					handler.post(() -> progressBar.setVisibility(View.GONE));
 
 					Log.d("DATA", "onSuccess: " + data);
 
@@ -71,7 +77,10 @@ public class MainActivity extends AppCompatActivity {
 
 				@Override
 				public void onFailure(String errorMessage) {
-					handler.post(() -> Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show());
+					handler.post(() -> {
+						progressBar.setVisibility(View.GONE);
+						Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+					});
 				}
 			}));
 		} else {

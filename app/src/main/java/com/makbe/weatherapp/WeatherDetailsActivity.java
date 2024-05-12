@@ -3,8 +3,12 @@ package com.makbe.weatherapp;
 import android.content.Intent;
 import android.os.*;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -25,6 +29,8 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 	private TextView textWind;
 	private ImageView conditionImage;
 
+	private ProgressBar progressBar;
+
 	private String location;
 
 	@Override
@@ -34,6 +40,14 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 
 		MaterialToolbar toolbar = findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
+
+		ActionBar actionBar = getSupportActionBar();
+		assert actionBar != null;
+
+		actionBar.setDisplayHomeAsUpEnabled(true);
+		toolbar.setNavigationIcon(R.drawable.ic_chevron_left);
+
+		progressBar = findViewById(R.id.progressBar);
 
 		conditionImage = findViewById(R.id.image_condition);
 
@@ -45,10 +59,39 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 		textWind = findViewById(R.id.text_wind);
 
 		MaterialButton refreshBtn = findViewById(R.id.btn_refresh);
-		refreshBtn.setOnClickListener(view -> executeFetch());
+		refreshBtn.setOnClickListener(view -> {
+			progressBar.setVisibility(View.VISIBLE);
+			executeFetch();
+		});
 
 		WeatherData weatherData = getWeatherData();
 		updateUI(weatherData);
+	}
+
+	private void executeFetch() {
+		if (NetUtils.isNetworkAvailable(getApplicationContext())) {
+			ExecutorService executorService = Executors.newSingleThreadExecutor();
+			Handler handler = new Handler(Looper.getMainLooper());
+
+			executorService.execute(() -> Weather.fetchWeatherData(this, location, new Weather.WeatherCallback() {
+				@Override
+				public void onSuccess(WeatherData data) {
+					handler.post(() -> progressBar.setVisibility(View.GONE));
+					Log.d("DATA", "onSuccess: " + data);
+					handler.post(() -> updateUI(data));
+				}
+
+				@Override
+				public void onFailure(String errorMessage) {
+					handler.post(() -> {
+						progressBar.setVisibility(View.GONE);
+						Toast.makeText(WeatherDetailsActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+					});
+				}
+			}));
+		} else {
+			Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	private @NotNull WeatherData getWeatherData() {
@@ -64,53 +107,44 @@ public class WeatherDetailsActivity extends AppCompatActivity {
 		return new WeatherData(main, description, icon, name, temperature, humidity, wind);
 	}
 
-	private void executeFetch() {
-		if (NetUtils.isNetworkAvailable(getApplicationContext())) {
-			ExecutorService executorService = Executors.newSingleThreadExecutor();
-			Handler handler = new Handler(Looper.getMainLooper());
-
-			executorService.execute(() -> Weather.fetchWeatherData(this, location, new Weather.WeatherCallback() {
-				@Override
-				public void onSuccess(WeatherData data) {
-					Log.d("DATA", "onSuccess: " + data);
-					handler.post(() -> updateUI(data));
-				}
-
-				@Override
-				public void onFailure(String errorMessage) {
-					handler.post(() -> Toast.makeText(WeatherDetailsActivity.this, errorMessage, Toast.LENGTH_LONG).show());
-				}
-			}));
-		} else {
-			Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-		}
-	}
-
 	private void updateUI(WeatherData data) {
-			double temperature = data.temperature();
-			double humidity = data.humidity();
-			double wind = data.wind();
+		double temperature = data.temperature();
+		double humidity = data.humidity();
+		double wind = data.wind();
 
-			String main = data.main();
-			String description = data.description();
-			String icon = data.icon();
+		String main = data.main();
+		String description = data.description();
+		String icon = data.icon();
 
-			String name = data.name();
-			location = name;
-			setTitle(name);
+		String name = data.name();
+		location = name;
+		setTitle(name);
 
 		String BASE_IMG_URL = "https://openweathermap.org/img/wn/";
 		String iconUrl = BASE_IMG_URL + icon + "@2x.png";
-			Glide.with(this)
-					.load(iconUrl)
-					.into(conditionImage);
+		Glide.with(this)
+				.load(iconUrl)
+				.into(conditionImage);
 
-			textMain.setText(main);
-			textDescription.setText(description);
+		textMain.setText(main);
+		textDescription.setText(description);
 
-			textTemperature.setText("Temperature: " + temperature);
-			textHumidity.setText("Humidity: " + humidity);
-			textWind.setText("Wind: " + wind);
+		textTemperature.setText("Temperature: " + temperature);
+		textHumidity.setText(String.valueOf(humidity));
+		textWind.setText(String.valueOf(wind));
 
 	}
+
+	@Override
+	public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+		int id = item.getItemId();
+
+		if (id == android.R.id.home) {
+			getOnBackPressedDispatcher().onBackPressed();
+			return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+
 }
